@@ -1,5 +1,11 @@
 ---
 import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { aboutImage as localAboutImage } from '../config/images';
+
+// Fallback Unsplash URL used until a local image is added to
+// src/assets/images/about/ and registered in src/config/images.ts
+const PLACEHOLDER = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80';
 
 interface Props {
   topper?: string;
@@ -8,7 +14,7 @@ interface Props {
   benefits?: string[];
   ctaLabel?: string;
   ctaHref?: string;
-  imageSrc?: string;
+  imageSrc?: ImageMetadata | string;
   imageAlt?: string;
 }
 
@@ -26,7 +32,7 @@ const {
   ],
   ctaLabel = 'More About Us',
   ctaHref = '/about',
-  imageSrc = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80',
+  imageSrc = localAboutImage ?? PLACEHOLDER,
   imageAlt = 'Friendly professional team on a job site',
 } = Astro.props;
 ---

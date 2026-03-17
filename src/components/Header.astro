@@ -135,66 +135,89 @@ const currentPath = Astro.url.pathname;
 </header>
 
 <script>
-  // This header uses transition:persist — it is never removed from the DOM.
-  // Its script therefore runs exactly once per full page load.
-  // All event listeners registered here are long-lived; we must NOT re-register
-  // them on astro:after-swap (that would accumulate duplicate listeners on the
-  // same persistent elements).
+  (() => {
+    const headerEl = document.querySelector('header');
+    const btnEl = document.getElementById('menu-toggle');
+    const menuEl = document.getElementById('mobile-menu');
+    const iconOpenEl = document.getElementById('menu-icon-open');
+    const iconCloseEl = document.getElementById('menu-icon-close');
 
-  const btn      = document.getElementById('menu-toggle')  as HTMLButtonElement | null;
-  const menu     = document.getElementById('mobile-menu')  as HTMLElement | null;
-  const iconOpen = document.getElementById('menu-icon-open')  as HTMLElement | null;
-  const iconClose= document.getElementById('menu-icon-close') as HTMLElement | null;
+    if (!headerEl || !btnEl || !menuEl || !iconOpenEl || !iconCloseEl) return;
 
-  if (btn && menu && iconOpen && iconClose) {
-    function closeMenu() {
-      btn!.setAttribute('aria-expanded', 'false');
-      menu!.classList.add('hidden');
-      iconOpen!.classList.remove('hidden');
-      iconClose!.classList.add('hidden');
+    const header = /** @type {HTMLElement} */ (headerEl);
+    const btn = /** @type {HTMLButtonElement} */ (btnEl);
+    const menu = /** @type {HTMLElement} */ (menuEl);
+    const iconOpen = /** @type {HTMLElement} */ (iconOpenEl);
+    const iconClose = /** @type {HTMLElement} */ (iconCloseEl);
+    if (header.dataset.menuInit === 'true') return;
+    header.dataset.menuInit = 'true';
+
+    const activeClasses = ['bg-primary/10', 'text-primary'];
+    const inactiveDesktop = ['text-text-muted', 'hover:text-text'];
+    const inactiveMobile = ['text-text-muted', 'hover:text-text', 'hover:bg-surface'];
+
+    const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
+
+    const setMenuOpen = (nextOpen: boolean) => {
+      // Hard stop: hamburger/drawer behavior is mobile-only.
+      if (isDesktop()) nextOpen = false;
+      btn.setAttribute('aria-expanded', String(nextOpen));
+      menu.classList.toggle('hidden', !nextOpen);
+      iconOpen.classList.toggle('hidden', nextOpen);
+      iconClose.classList.toggle('hidden', !nextOpen);
+    };
+
+    function syncActiveLinks() {
+      const path = window.location.pathname;
+      const desktopLinks = header.querySelectorAll('nav[aria-label="Primary navigation"] a');
+      const mobileLinks = header.querySelectorAll('#mobile-menu nav a');
+
+      desktopLinks.forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        const isActive = href === path || (href !== '/' && path.startsWith(href));
+        link.classList.toggle(activeClasses[0], isActive);
+        link.classList.toggle(activeClasses[1], isActive);
+        link.classList.toggle(inactiveDesktop[0], !isActive);
+        link.classList.toggle(inactiveDesktop[1], !isActive);
+        if (isActive) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+
+      mobileLinks.forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        const isActive = href === path || (href !== '/' && path.startsWith(href));
+        link.classList.toggle(activeClasses[0], isActive);
+        link.classList.toggle(activeClasses[1], isActive);
+        link.classList.toggle(inactiveMobile[0], !isActive);
+        link.classList.toggle(inactiveMobile[1], !isActive);
+        link.classList.toggle(inactiveMobile[2], !isActive);
+        if (isActive) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
     }
 
-    // Toggle open / closed on hamburger click
     btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', String(!open));
-      menu.classList.toggle('hidden');
-      iconOpen.classList.toggle('hidden');
-      iconClose.classList.toggle('hidden');
+      if (isDesktop()) return;
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+      setMenuOpen(!isOpen);
     });
 
-    // Close when any link inside the drawer is clicked.
-    // Fires before Astro's View Transition intercepts the click, so the
-    // menu collapses even though the full page never reloads.
-    menu.addEventListener('click', (e) => {
-      if ((e.target as Element).closest('a')) closeMenu();
+    menu.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('a[href]')) setMenuOpen(false);
     });
 
-    // Belt-and-suspenders: also close as soon as navigation begins,
-    // so the menu is never visible mid-transition.
-    document.addEventListener('astro:before-preparation', closeMenu);
-  }
-
-  // Update aria-current on nav links after each client-side page swap,
-  // since the persisted header is never re-rendered by the server.
-  function syncActiveLinks() {
-    const path = location.pathname;
-    document.querySelectorAll<HTMLAnchorElement>(
-      '#mobile-menu nav a, header nav a'
-    ).forEach((a) => {
-      const href = a.getAttribute('href') ?? '';
-      const active = href === path || (href !== '/' && path.startsWith(href));
-      if (active) {
-        a.setAttribute('aria-current', 'page');
-        a.classList.add('bg-primary/10', 'text-primary');
-        a.classList.remove('text-text-muted', 'hover:text-text', 'hover:bg-surface');
-      } else {
-        a.removeAttribute('aria-current');
-        a.classList.remove('bg-primary/10', 'text-primary');
-        a.classList.add('text-text-muted');
-      }
+    document.addEventListener('astro:before-preparation', () => setMenuOpen(false));
+    document.addEventListener('astro:after-swap', () => {
+      setMenuOpen(false);
+      syncActiveLinks();
     });
-  }
 
-  document.addEventListener('astro:after-swap', syncActiveLinks);
+    // Ensure mobile drawer can't stay open if viewport changes to desktop.
+    window.addEventListener('resize', () => setMenuOpen(false));
+
+    setMenuOpen(false);
+    syncActiveLinks();
+  })();
 </script>
