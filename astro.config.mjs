@@ -9,13 +9,6 @@ export default defineConfig({
   output: 'static',
   
   integrations: [sitemap(), robotsTxt()],
-  
-  vite: {
-    build: {
-      target: 'es2022',
-      cssMinify: 'esbuild'
-    }
-  },
 
   fonts: [
     {
