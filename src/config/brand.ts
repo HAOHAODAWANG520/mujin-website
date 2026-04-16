@@ -14,10 +14,10 @@
 
 export const brand = {
   // ── Site Identity ──────────────────────────────────────────────────────────
-  name: 'Small Business Starter',
-  tagline: 'Professional service you can trust.',
+  name: 'MUJIN LIMITED',
+  tagline: 'Bridging Global Emerging Markets',
   description:
-    'A fast, mobile-first small-business website template built with Astro 6 and Tailwind v4. Fully customisable for any trade or service business.',
+    'Connecting Chinese innovation with Latin America and Southeast Asia. We provide leading AI/HPC infrastructure and smart medical device supply chain solutions.',
   url: 'https://example.com',
   locale: 'en_US',
 
