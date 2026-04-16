@@ -7,6 +7,13 @@ import robotsTxt from 'astro-robots-txt';
 export default defineConfig({
   site: 'https://www.example.com',
   output: 'static',
+  
+vite: {
+    build: {
+      target: 'es2022',
+      cssMinify: 'esbuild'
+    }
+  },
 
   integrations: [sitemap(), robotsTxt()],
 
