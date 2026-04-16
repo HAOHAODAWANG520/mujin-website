@@ -4,10 +4,11 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import robotsTxt from 'astro-robots-txt';
 
+import cloudflare from '@astrojs/cloudflare';
+
 export default defineConfig({
   site: 'https://www.example.com',
   output: 'static',
-  
   integrations: [sitemap(), robotsTxt()],
 
   fonts: [
@@ -39,4 +40,6 @@ export default defineConfig({
       cssMinify: 'esbuild',
     },
   },
+
+  adapter: cloudflare(),
 });
