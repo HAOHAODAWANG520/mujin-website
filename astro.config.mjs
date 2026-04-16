@@ -8,14 +8,14 @@ export default defineConfig({
   site: 'https://www.example.com',
   output: 'static',
   
-vite: {
+  integrations: [sitemap(), robotsTxt()],
+  
+  vite: {
     build: {
       target: 'es2022',
       cssMinify: 'esbuild'
     }
   },
-
-  integrations: [sitemap(), robotsTxt()],
 
   fonts: [
     {
